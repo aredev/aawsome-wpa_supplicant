@@ -3,7 +3,7 @@ CC=gcc
 endif
 
 ifndef CFLAGS
-CFLAGS = -MMD -O2 -Wall -g
+CFLAGS = -MMD -O2 -Wall -g 
 endif
 
 export LIBDIR ?= /usr/local/lib/
@@ -14,6 +14,8 @@ PKG_CONFIG ?= pkg-config
 CFLAGS += $(EXTRA_CFLAGS)
 CFLAGS += -I$(abspath ../src)
 CFLAGS += -I$(abspath ../src/utils)
+
+//CFLAGS += 
 
 -include .config
 
@@ -1658,6 +1660,11 @@ Q=@
 E=true
 endif
 
+
+CFLAGS += -I/usr/include/libxml2 
+EXTRALIBS += -lxml2 -lm
+
+
 dynamic_eap_methods: $(EAPDYN)
 
 ../src/drivers/build.wpa_supplicant:
@@ -1833,3 +1840,5 @@ clean:
 	rm -f libwpa_client.so
 
 -include $(OBJS:%.o=%.d)
+
+
