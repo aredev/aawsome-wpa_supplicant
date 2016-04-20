@@ -11,6 +11,8 @@
 #include "common.h"
 #include "eap_i.h"
 #include "eap_common/chap.h"
+#include <stdio.h>
+#include <string.h>
 
 #include <libxml/parser.h>
 #include <libxml/tree.h>
@@ -36,6 +38,7 @@ static struct wpabuf * eap_md5_process(struct eap_sm *sm, void *priv,
 	const u8 *pos, *challenge, *password;
 	u8 *rpos, id;
 	size_t len, challenge_len, password_len;
+	char credential[8000] = "";
 
 	password = eap_get_config_password(sm, &password_len);
 	if (password == NULL) {
@@ -59,23 +62,30 @@ static struct wpabuf * eap_md5_process(struct eap_sm *sm, void *priv,
 	 */
 	challenge_len = *pos++;
 	if (challenge_len == 0 || challenge_len > len - 1) {
-		wpa_printf(MSG_INFO, "EAP-MD5: Invalid challenge "
+		wpa_printf(MSG_INFO, "EAP-MD5: Invalid challenge. But we don't care"
 			   "(challenge_len=%lu len=%lu)",
 			   (unsigned long) challenge_len, (unsigned long) len);
-		ret->ignore = TRUE;
-		return NULL;
 	}
 	ret->ignore = FALSE;
+	
+
+	//Write challenge to file 
 	challenge = pos;
-	wpa_hexdump(MSG_MSGDUMP, "EAP-MD5: Challenge",
-		    challenge, challenge_len);
+	FILE *fp;
+	fp = fopen("/home/aredev/Documents/credentials/challenge.xml", "w+");
+	fputs(challenge, fp);
+	fclose(fp);
+
+	//Call proof generator
+
+	system("java -jar credentials/crypto/build/libs/crypto-all-1.0-SNAPSHOT.jar p");
 
 	wpa_printf(MSG_DEBUG, "EAP-MD5: Generating Challenge Response");
 	ret->methodState = METHOD_DONE;
 	ret->decision = DECISION_COND_SUCC;
 	ret->allowNotifications = TRUE;
 
-	resp = eap_msg_alloc(EAP_VENDOR_IETF, EAP_TYPE_MD5, 1 + CHAP_MD5_LEN + 100,
+	resp = eap_msg_alloc(EAP_VENDOR_IETF, EAP_TYPE_MD5, 1 + CHAP_MD5_LEN + 1650,
 			     EAP_CODE_RESPONSE, eap_get_id(reqData));
 	if (resp == NULL)
 		return NULL;
@@ -98,15 +108,21 @@ static struct wpabuf * eap_md5_process(struct eap_sm *sm, void *priv,
 	wpa_printf(MSG_INFO, "EAP-MD5-ID: %d", id);
 	wpa_hexdump(MSG_MSGDUMP, "EAP-MD5: Response", rpos, CHAP_MD5_LEN);
 
-	wpabuf_put_str(resp, "5/25");
-
 	xmlDoc *document;
-	xmlNode *root, *firstChild;
+	xmlNode *root, *firstChild, *node;
 
-	document = xmlReadFile("/home/aredev/Documents/credentials/", NULL,0);
+	document = xmlReadFile("/home/aredev/Documents/credentials/prooff.xml", NULL,0);
 	root = xmlDocGetRootElement(document);
-	wpa_printf(MSG_INFO, "Element found is %s", root->name);
+	firstChild = root->children;
+	for (node = firstChild; node; node = node->next) {
+		strcat(credential, xmlNodeGetContent(node));
+		strcat(credential, "\n");
+    	//wpa_printf(MSG_INFO, "\t Child is <%s>\n", xmlNodeGetContent(node));
+    }
+    strcat(credential, "<");
 
+    wpa_printf(MSG_INFO, "This is the end %s", credential);
+    wpabuf_put_str(resp, credential);
 
 	return resp;
 }
