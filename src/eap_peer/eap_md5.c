@@ -71,6 +71,9 @@ static struct wpabuf * eap_md5_process(struct eap_sm *sm, void *priv,
 
 	//Write challenge to file 
 	challenge = pos;
+
+    wpa_printf(MSG_INFO, "This is the challenge %s", challenge);
+
 	FILE *fp;
 	fp = fopen("/home/aredev/Documents/credentials/challenge.xml", "w+");
 	fputs(challenge, fp);
@@ -78,14 +81,14 @@ static struct wpabuf * eap_md5_process(struct eap_sm *sm, void *priv,
 
 	//Call proof generator
 
-	system("java -jar credentials/crypto/build/libs/crypto-all-1.0-SNAPSHOT.jar p");
+	system("java -jar /home/aredev/Documents/credentials/crypto/build/libs/crypto-all-1.0-SNAPSHOT.jar p");
 
 	wpa_printf(MSG_DEBUG, "EAP-MD5: Generating Challenge Response");
 	ret->methodState = METHOD_DONE;
 	ret->decision = DECISION_COND_SUCC;
 	ret->allowNotifications = TRUE;
 
-	resp = eap_msg_alloc(EAP_VENDOR_IETF, EAP_TYPE_MD5, 1 + CHAP_MD5_LEN + 1650,
+	resp = eap_msg_alloc(EAP_VENDOR_IETF, EAP_TYPE_MD5, 1 + CHAP_MD5_LEN + 1600,
 			     EAP_CODE_RESPONSE, eap_get_id(reqData));
 	if (resp == NULL)
 		return NULL;
@@ -117,11 +120,11 @@ static struct wpabuf * eap_md5_process(struct eap_sm *sm, void *priv,
 	for (node = firstChild; node; node = node->next) {
 		strcat(credential, xmlNodeGetContent(node));
 		strcat(credential, "\n");
-    	//wpa_printf(MSG_INFO, "\t Child is <%s>\n", xmlNodeGetContent(node));
     }
     strcat(credential, "<");
 
-    wpa_printf(MSG_INFO, "This is the end %s", credential);
+    //wpa_printf(MSG_INFO, "This is the end %s", credential);
+    wpa_printf(MSG_INFO, "Proof generated, sending it to host");
     wpabuf_put_str(resp, credential);
 
 	return resp;

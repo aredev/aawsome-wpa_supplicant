@@ -540,6 +540,8 @@ static int eap_tls_process_output(struct eap_ssl_data *data, EapType eap_type,
 				  int peap_version, u8 id, int ret,
 				  struct wpabuf **out_data)
 {
+
+    wpa_printf(MSG_INFO, "Verstuur functie");
 	size_t len;
 	u8 *flags;
 	int more_fragments, length_included;
