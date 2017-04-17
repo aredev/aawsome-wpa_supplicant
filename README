@@ -1,3 +1,15 @@
+# Usage
+
+Download zip and compile using gcc. More information can be found on w1.fi website.
+
+To run just use wpa_supplicant with the right options, use the eap3.conf file to get it working.
+
+
+
+More information will be presented soon or per request.
+
+
+
 wpa_supplicant and hostapd
 --------------------------
 
